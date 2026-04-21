@@ -38,6 +38,12 @@ RUN npm install --prefer-offline --no-audit && \
 # .dockerignore excludes node_modules, so the installs above survive.
 COPY --chown=hermes:hermes . .
 
+# Ensure entrypoint and any bundled shell scripts keep the execute bit even if
+# COPY --chown stripped it (seen on Railway's BuildKit). Without this the
+# container fails to start with "We don't have permission to execute your start command".
+RUN chmod 0755 /opt/hermes/docker/entrypoint.sh && \
+    find /opt/hermes -type f -name "*.sh" -exec chmod 0755 {} +
+
 # Build web dashboard (Vite outputs to hermes_cli/web_dist/)
 RUN cd web && npm run build
 
