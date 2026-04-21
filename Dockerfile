@@ -50,5 +50,6 @@ RUN uv venv && \
 # ---------- Runtime ----------
 ENV HERMES_WEB_DIST=/opt/hermes/hermes_cli/web_dist
 ENV HERMES_HOME=/opt/data
-VOLUME [ "/opt/data" ]
+# VOLUME directive removed for Railway compatibility — Railway manages volumes declaratively, not via Dockerfile.
+# Upstream uses `VOLUME [ "/opt/data" ]`; we rely on Railway's volume mount at /opt/data instead.
 ENTRYPOINT [ "/opt/hermes/docker/entrypoint.sh" ]
