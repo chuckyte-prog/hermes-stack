@@ -53,3 +53,6 @@ ENV HERMES_HOME=/opt/data
 # VOLUME directive removed for Railway compatibility — Railway manages volumes declaratively, not via Dockerfile.
 # Upstream uses `VOLUME [ "/opt/data" ]`; we rely on Railway's volume mount at /opt/data instead.
 ENTRYPOINT [ "/opt/hermes/docker/entrypoint.sh" ]
+# Default to running the messaging gateway so the container stays alive on Railway.
+# Override at run time by passing different args to the container.
+CMD [ "gateway" ]
