@@ -95,14 +95,32 @@ class TurnController {
     this.interrupted = true
     gw.request<SessionInterruptResponse>('session.interrupt', { session_id: sid }).catch(() => {})
 
+    const segments = this.segmentMessages
     const partial = this.bufRef.trimStart()
+    const tools = this.pendingSegmentTools
 
-    partial ? appendMessage({ role: 'assistant', text: `${partial}\n\n*[interrupted]*` }) : sys('interrupted')
-
+    // Drain streaming/segment state off the nanostore before writing the
+    // preserved snapshot to the transcript — otherwise each flushed segment
+    // appears in both `turn.streamSegments` and the transcript for one frame.
     this.idle()
     this.clearReasoning()
     this.turnTools = []
     patchTurnState({ activity: [], outcome: '' })
+
+    for (const msg of segments) {
+      appendMessage(msg)
+    }
+
+    if (partial || tools.length) {
+      appendMessage({
+        role: 'assistant',
+        text: partial ? `${partial}\n\n*[interrupted]*` : '*[interrupted]*',
+        ...(tools.length && { tools })
+      })
+    } else if (!segments.length) {
+      sys('interrupted')
+    }
+
     patchUiState({ status: 'interrupted' })
     this.clearStatusTimer()
 
