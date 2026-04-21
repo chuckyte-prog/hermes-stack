@@ -67,4 +67,16 @@ if [ -d "$INSTALL_DIR/skills" ]; then
     python3 "$INSTALL_DIR/tools/skills_sync.py"
 fi
 
+# For any secrets that the operator is managing via Railway env vars
+# (TELEGRAM_BOT_TOKEN, OPENROUTER_API_KEY, etc.), remove any stale entries
+# from /opt/data/.env so Hermes reads the fresh value from the process env.
+# Without this, a stale token previously written to .env wins over the
+# Railway env var because Hermes loads .env with override=True.
+for key in TELEGRAM_BOT_TOKEN OPENROUTER_API_KEY; do
+    if [ -n "${!key}" ] && [ -f "$HERMES_HOME/.env" ]; then
+        # Only strip if the env var is set in the process env (Railway case).
+        sed -i "/^${key}=/d" "$HERMES_HOME/.env"
+    fi
+done
+
 exec hermes "$@"
