@@ -22,15 +22,14 @@ if [ "$(id -u)" = "0" ]; then
         groupmod -o -g "$HERMES_GID" hermes 2>/dev/null || true
     fi
 
-    actual_hermes_uid=$(id -u hermes)
-    if [ "$(stat -c %u "$HERMES_HOME" 2>/dev/null)" != "$actual_hermes_uid" ]; then
-        echo "$HERMES_HOME is not owned by $actual_hermes_uid, fixing"
-        # In rootless Podman the container's "root" is mapped to an unprivileged
-        # host UID — chown will fail.  That's fine: the volume is already owned
-        # by the mapped user on the host side.
-        chown -R hermes:hermes "$HERMES_HOME" 2>/dev/null || \
-            echo "Warning: chown failed (rootless container?) — continuing anyway"
-    fi
+    # Always chown -R on boot rather than only when the mount root is mismatched.
+    # Needed because operators may edit files inside $HERMES_HOME as root via `railway ssh`,
+    # which creates root-owned files that hermes can't later read.
+    # In rootless Podman the container's "root" is mapped to an unprivileged
+    # host UID — chown will fail.  That's fine: the volume is already owned
+    # by the mapped user on the host side.
+    chown -R hermes:hermes "$HERMES_HOME" 2>/dev/null || \
+        echo "Warning: chown failed (rootless container?) — continuing anyway"
 
     echo "Dropping root privileges"
     exec gosu hermes "$0" "$@"
