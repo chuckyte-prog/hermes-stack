@@ -79,4 +79,11 @@ for key in TELEGRAM_BOT_TOKEN OPENROUTER_API_KEY; do
     fi
 done
 
+# If the first arg looks like a path (starts with /), exec it directly.
+# This lets us pass a wrapper script (e.g. docker/run-both.sh) as CMD without
+# it being misinterpreted as a hermes subcommand.
+if [ "${1:0:1}" = "/" ]; then
+    exec "$@"
+fi
+
 exec hermes "$@"

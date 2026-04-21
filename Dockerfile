@@ -58,6 +58,8 @@ ENV HERMES_HOME=/opt/data
 # mounted as root-owned, and without this the hermes user can't write to it.
 USER root
 ENTRYPOINT [ "/opt/hermes/docker/entrypoint.sh" ]
-# Default to running the messaging gateway so the container stays alive on Railway.
+# Default: run the messaging gateway AND web dashboard together.
+# Dashboard binds to localhost:9119 inside the container — reach it via
+# `railway ssh` port forwarding (see Build/Tools/Hermes/runbook.md).
 # Override at run time by passing different args to the container.
-CMD [ "gateway" ]
+CMD [ "/opt/hermes/docker/run-both.sh" ]
